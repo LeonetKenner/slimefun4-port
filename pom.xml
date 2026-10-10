@@ -221,6 +221,17 @@
                                 <exclude>META-INF/*</exclude>
                             </excludes>
                         </filter>
+                        <!--
+                            We ship a patched copy of dough's MinecraftVersion which
+                            supports both the legacy ("1.21.4") and the year-based
+                            ("26.3") Minecraft versioning schemes, so exclude the original.
+                        -->
+                        <filter>
+                            <artifact>com.github.Slimefun.dough:dough-api</artifact>
+                            <excludes>
+                                <exclude>io/github/bakedlibs/dough/versions/MinecraftVersion.class</exclude>
+                            </excludes>
+                        </filter>
                     </filters>
                 </configuration>
 

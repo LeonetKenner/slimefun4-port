@@ -29,8 +29,10 @@ jobs:
             javaVersion: '20'
           - mcVersion: '1.20.6'
             javaVersion: '21'
-          #- mcVersion: 'latest'
-          #  javaVersion: '21'
+          - mcVersion: '1.21.11'
+            javaVersion: '21'
+          - mcVersion: '26.3'
+            javaVersion: '25'
 
     steps:
       - name: Checkout repository
@@ -52,18 +54,12 @@ jobs:
       - name: Download ${{ matrix.mcVersion }} Paper
         run: |
           VERSION="${{ matrix.mcVersion }}"
-          if [ "$VERSION" == "latest" ]; then
-            VERSION=$(curl https://api.papermc.io/v2/projects/paper/ -s | jq -r '.versions[-1]')
-          fi
 
-          BUILD_JAR=$(curl -s "https://api.papermc.io/v2/projects/paper/versions/$VERSION/builds" \
-            | jq '.builds[-1] | "\(.build) \(.downloads.application.name)"' -r)
-          BUILD=$(echo "$BUILD_JAR" | awk '{print $1}')
-          JAR_FILE=$(echo "$BUILD_JAR" | awk '{print $2}')
+          URL=$(curl -s "https://fill.papermc.io/v3/projects/paper/versions/$VERSION/builds/latest" \
+            | jq -r '.downloads["server:default"].url')
 
-          echo "Downloading... https://api.papermc.io/v2/projects/paper/versions/$VERSION/builds/$BUILD/downloads/$JAR_FILE"
-          curl -o paper.jar \
-            "https://api.papermc.io/v2/projects/paper/versions/$VERSION/builds/$BUILD/downloads/$JAR_FILE"
+          echo "Downloading... $URL"
+          curl -o paper.jar "$URL"
 
       - name: Download Slimefun
         uses: actions/download-artifact@v4

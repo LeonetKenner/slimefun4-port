@@ -524,8 +524,11 @@ public class Slimefun extends JavaPlugin implements SlimefunAddon {
             }
 
             // Now check the actual Version of Minecraft
-            int version = PaperLib.getMinecraftVersion();
-            int patchVersion = PaperLib.getMinecraftPatchVersion();
+            // We parse the version string ourselves rather than relying on PaperLib,
+            // as PaperLib cannot handle the new year-based versioning scheme ("26.1")
+            // that Mojang introduced in 2026.
+            int version = MinecraftVersion.getServerMajorVersion();
+            int patchVersion = MinecraftVersion.getServerMinorVersion();
 
             if (version > 0) {
                 // Check all supported versions of Minecraft
@@ -537,7 +540,7 @@ public class Slimefun extends JavaPlugin implements SlimefunAddon {
                 }
 
                 // Looks like you are using an unsupported Minecraft Version
-                StartupWarnings.invalidMinecraftVersion(getLogger(), version, getDescription().getVersion());
+                StartupWarnings.invalidMinecraftVersion(getLogger(), version + "." + patchVersion, getDescription().getVersion());
                 return true;
             } else {
                 getLogger().log(Level.WARNING, "We could not determine the version of Minecraft you were using? ({0})", Bukkit.getVersion());

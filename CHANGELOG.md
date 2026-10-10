@@ -40,6 +40,11 @@
 
 ## Release Candidate 38 (TBD)
 
+#### Changes
+* Add support for Minecraft 1.21.x and the year-based versioning scheme (26.x), including Minecraft 26.1, 26.2 and 26.3
+* Replace the dough library's player head API with an internal implementation to avoid a crash caused by `com.mojang.authlib.GameProfile` becoming `final` (Minecraft 1.21.9+)
+* Resolve the max health attribute in a version-proof way (`GENERIC_MAX_HEALTH` was renamed in newer versions of the API)
+
 ## Release Candidate 37 (25 Feb 2024)
 
 #### Additions

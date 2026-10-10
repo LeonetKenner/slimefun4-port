@@ -16,9 +16,9 @@ import javax.annotation.Nullable;
 
 import org.bukkit.Bukkit;
 
-import io.github.bakedlibs.dough.skins.PlayerSkin;
 import io.github.bakedlibs.dough.skins.UUIDLookup;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
+import io.github.thebusybiscuit.slimefun4.utils.HeadUtils;
 
 /**
  * This {@link GitHubTask} represents a {@link Runnable} that is run every X minutes.
@@ -141,8 +141,8 @@ class GitHubTask implements Runnable {
         }
 
         if (uuid.isPresent()) {
-            CompletableFuture<PlayerSkin> future = PlayerSkin.fromPlayerUUID(Slimefun.instance(), uuid.get());
-            Optional<String> skin = Optional.of(future.get().getProfile().getBase64Texture());
+            CompletableFuture<String> future = HeadUtils.fetchSkin(uuid.get());
+            Optional<String> skin = Optional.ofNullable(future.get());
             skins.put(contributor.getMinecraftName(), skin.orElse(""));
             return skin.orElse(null);
         } else {

@@ -3,6 +3,7 @@ package io.github.thebusybiscuit.slimefun4.api;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.lang.Validate;
+import org.bukkit.Bukkit;
 import org.bukkit.Server;
 
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
@@ -55,11 +56,28 @@ public enum MinecraftVersion {
      */
     MINECRAFT_1_20_5(20, 5, "1.20.5+"),
 
-     /**
+    /**
      * This constant represents Minecraft (Java Edition) Version 1.21
      * ("Tricky Trials")
      */
     MINECRAFT_1_21(21, 0, "1.21.x"),
+
+    /**
+     * This constant represents Minecraft (Java Edition) Version 26.1
+     * ("Tiny Takeover"), the first drop of the year-based versioning
+     * scheme which Mojang started using in 2026.
+     */
+    MINECRAFT_26_1(26, 1, 1, "26.1.x"),
+
+    /**
+     * This constant represents Minecraft (Java Edition) Version 26.2
+     */
+    MINECRAFT_26_2(26, 2, 2, "26.2.x"),
+
+    /**
+     * This constant represents Minecraft (Java Edition) Version 26.3
+     */
+    MINECRAFT_26_3(26, 3, 3, "26.3.x"),
 
     /**
      * This constant represents an exceptional state in which we were unable
@@ -295,6 +313,84 @@ public enum MinecraftVersion {
         }
 
         return this.minorVersion == -1 ? patchVersion > 0 : this.minorVersion < patchVersion;
+    }
+
+    /*
+     * The following is used to detect the version of the Minecraft Server we are running on.
+     * Since Mojang switched to their new year-based versioning scheme ("26.1") in 2026,
+     * we can no longer assume that every version starts with "1.".
+     * The old PaperLib parsing relied on that assumption (and a single-digit major version),
+     * which is why we parse the version string ourselves.
+     */
+
+    private static int serverMajorVersion = -1;
+    private static int serverMinorVersion = -1;
+
+    /**
+     * This method returns the major version of the Minecraft Server we are running on,
+     * for example {@code 21} for Minecraft 1.21.4 or {@code 26} for Minecraft 26.1.2.
+     * <p>
+     * The result of this method is cached.
+     *
+     * @return The major version of Minecraft or {@code 0} if it could not be determined
+     */
+    public static int getServerMajorVersion() {
+        parseServerVersion();
+        return Math.max(serverMajorVersion, 0);
+    }
+
+    /**
+     * This method returns the minor version of the Minecraft Server we are running on,
+     * for example {@code 4} for Minecraft 1.21.4 or {@code 1} for Minecraft 26.1.2
+     * (under the year-based versioning scheme, the "drop" number corresponds to
+     * the old "patch" version).
+     * <p>
+     * The result of this method is cached.
+     *
+     * @return The minor version of Minecraft or {@code 0} if it could not be determined
+     */
+    public static int getServerMinorVersion() {
+        parseServerVersion();
+        return Math.max(serverMinorVersion, 0);
+    }
+
+    private static void parseServerVersion() {
+        if (serverMajorVersion != -1) {
+            return;
+        }
+
+        try {
+            // This is for example "1.21.4-R0.1-SNAPSHOT" or, on newer versions,
+            // something like "26.1.2-R0.1-STABLE"
+            String version = Bukkit.getBukkitVersion();
+
+            // Strip the "-R0.1-..." (or similar) build suffix
+            int separator = version.indexOf('-');
+            if (separator != -1) {
+                version = version.substring(0, separator);
+            }
+
+            String[] parts = version.split("\\.");
+
+            if (parts[0].equals("1")) {
+                // Legacy versioning scheme: "1.major[.minor]"
+                serverMajorVersion = Integer.parseInt(parts[1]);
+                serverMinorVersion = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
+            } else {
+                // Year-based versioning scheme: "year.drop[.hotfix]"
+                // We treat the "drop" as our minor version and ignore the hotfix number
+                serverMajorVersion = Integer.parseInt(parts[0]);
+                serverMinorVersion = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
+            }
+        } catch (RuntimeException x) {
+            /*
+             * We could not parse the version, this is most likely caused by a
+             * non-standard server software. A major version of 0 will be
+             * treated as "unknown" by our callers.
+             */
+            serverMajorVersion = 0;
+            serverMinorVersion = 0;
+        }
     }
 
 }

@@ -100,6 +100,8 @@ class TestBiomeMapCompatibility {
     private static @Nonnull Stream<Arguments> biomeMaps() {
         Map<String, MinecraftVersion[]> testCases = new HashMap<>();
 
+        // The resources pick their map via MinecraftVersion#isAtLeast(...),
+        // so the "v1.18" maps are also the ones used on 26.x and newer servers.
         // @formatter:off
         testCases.put("nether_ice_v1.16", new MinecraftVersion[] {
             MinecraftVersion.MINECRAFT_1_16,
@@ -107,7 +109,10 @@ class TestBiomeMapCompatibility {
             MinecraftVersion.MINECRAFT_1_18,
             MinecraftVersion.MINECRAFT_1_19,
             MinecraftVersion.MINECRAFT_1_20,
-            MinecraftVersion.MINECRAFT_1_21
+            MinecraftVersion.MINECRAFT_1_21,
+            MinecraftVersion.MINECRAFT_26_1,
+            MinecraftVersion.MINECRAFT_26_2,
+            MinecraftVersion.MINECRAFT_26_3
         });
 
         testCases.put("oil_v1.16", new MinecraftVersion[] {
@@ -119,7 +124,10 @@ class TestBiomeMapCompatibility {
             MinecraftVersion.MINECRAFT_1_18,
             MinecraftVersion.MINECRAFT_1_19,
             MinecraftVersion.MINECRAFT_1_20,
-            MinecraftVersion.MINECRAFT_1_21
+            MinecraftVersion.MINECRAFT_1_21,
+            MinecraftVersion.MINECRAFT_26_1,
+            MinecraftVersion.MINECRAFT_26_2,
+            MinecraftVersion.MINECRAFT_26_3
         });
 
         testCases.put("salt_v1.16", new MinecraftVersion[] {
@@ -131,7 +139,10 @@ class TestBiomeMapCompatibility {
             MinecraftVersion.MINECRAFT_1_18,
             MinecraftVersion.MINECRAFT_1_19,
             MinecraftVersion.MINECRAFT_1_20,
-            MinecraftVersion.MINECRAFT_1_21
+            MinecraftVersion.MINECRAFT_1_21,
+            MinecraftVersion.MINECRAFT_26_1,
+            MinecraftVersion.MINECRAFT_26_2,
+            MinecraftVersion.MINECRAFT_26_3
         });
 
         testCases.put("uranium_v1.16", new MinecraftVersion[] {
@@ -146,7 +157,10 @@ class TestBiomeMapCompatibility {
             MinecraftVersion.MINECRAFT_1_18,
             MinecraftVersion.MINECRAFT_1_19,
             MinecraftVersion.MINECRAFT_1_20,
-            MinecraftVersion.MINECRAFT_1_21
+            MinecraftVersion.MINECRAFT_1_21,
+            MinecraftVersion.MINECRAFT_26_1,
+            MinecraftVersion.MINECRAFT_26_2,
+            MinecraftVersion.MINECRAFT_26_3
         });
         // @formatter:on
 
