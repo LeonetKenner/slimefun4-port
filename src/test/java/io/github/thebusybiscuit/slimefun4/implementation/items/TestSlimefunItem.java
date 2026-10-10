@@ -44,7 +44,7 @@ class TestSlimefunItem {
         Assertions.assertFalse(item.getWikipage().isPresent());
 
         // null should not be a valid argument
-        Assertions.assertThrows(IllegalArgumentException.class, () -> item.addOfficialWikipage(null));
+        Assertions.assertThrows(NullPointerException.class, () -> item.addOfficialWikipage(null));
 
         item.addOfficialWikipage("Test");
 
@@ -99,7 +99,7 @@ class TestSlimefunItem {
         item.setRecipeType(RecipeType.NULL);
         Assertions.assertEquals(RecipeType.NULL, item.getRecipeType());
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> item.setRecipeType(null));
+        Assertions.assertThrows(NullPointerException.class, () -> item.setRecipeType(null));
     }
 
     @Test

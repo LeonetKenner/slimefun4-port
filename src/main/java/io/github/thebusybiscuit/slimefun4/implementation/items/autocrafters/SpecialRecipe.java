@@ -7,7 +7,7 @@ import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
 
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
@@ -47,8 +47,8 @@ class SpecialRecipe extends AbstractRecipe {
 
     @Nonnull
     private static Collection<Predicate<ItemStack>> toPredicates(@Nonnull RecipeChoice[] choices) {
-        Validate.notNull(choices, "The choices cannot be null!");
-        Validate.isTrue(choices.length > 0, "The choices cannot be empty!");
+        Preconditions.checkNotNull(choices, "The choices cannot be null!");
+        Preconditions.checkArgument(choices.length > 0, "The choices cannot be empty!");
 
         List<Predicate<ItemStack>> predicates = new ArrayList<>(choices.length);
 
@@ -80,8 +80,8 @@ class SpecialRecipe extends AbstractRecipe {
 
     @Override
     public void show(@Nonnull ChestMenu menu, @Nonnull AsyncRecipeChoiceTask task) {
-        Validate.notNull(menu, "The ChestMenu cannot be null!");
-        Validate.notNull(task, "The RecipeChoiceTask cannot be null!");
+        Preconditions.checkNotNull(menu, "The ChestMenu cannot be null!");
+        Preconditions.checkNotNull(task, "The RecipeChoiceTask cannot be null!");
 
         menu.replaceExistingItem(24, getResult().clone());
         menu.addMenuClickHandler(24, ChestMenuUtils.getEmptyClickHandler());

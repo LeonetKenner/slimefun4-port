@@ -1,6 +1,7 @@
 package io.github.thebusybiscuit.slimefun4.implementation.listeners;
 
-import org.apache.commons.lang.mutable.MutableObject;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -67,15 +68,15 @@ class TestCraftingTableListener {
         Player player = server.addPlayer();
 
         CraftingInventory inv = Mockito.mock(CraftingInventory.class);
-        MutableObject result = new MutableObject(new ItemStack(Material.EMERALD));
+        AtomicReference<ItemStack> result = new AtomicReference<>(new ItemStack(Material.EMERALD));
 
         Mockito.doAnswer(invocation -> {
             ItemStack argument = invocation.getArgument(0);
-            result.setValue(argument);
+            result.set(argument);
             return null;
         }).when(inv).setResult(Mockito.any());
 
-        Mockito.when(inv.getResult()).thenAnswer(invocation -> result.getValue());
+        Mockito.when(inv.getResult()).thenAnswer(invocation -> result.get());
         Mockito.when(inv.getContents()).thenReturn(new ItemStack[] { null, null, item, null, null, null, null, null, null });
 
         InventoryView view = player.openInventory(inv);

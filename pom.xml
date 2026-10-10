@@ -208,6 +208,7 @@
                             <shadedPattern>io.github.thebusybiscuit.slimefun4.libraries.paperlib</shadedPattern>
                         </relocation>
                         <relocation>
+                            <!-- Only needed because our shaded copy of dough still references commons-lang -->
                             <pattern>org.apache.commons.lang</pattern>
                             <shadedPattern>io.github.thebusybiscuit.slimefun4.libraries.commons.lang</shadedPattern>
                         </relocation>
@@ -527,7 +528,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- TODO: Remove this dependency -->
+        <!--
+            Required by our shaded copy of dough (io.github.bakedlibs.dough), which still
+            references org.apache.commons.lang.Validate internally. Our own source no longer
+            uses commons-lang (see #3586) and has been migrated to Guava's Preconditions.
+        -->
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>

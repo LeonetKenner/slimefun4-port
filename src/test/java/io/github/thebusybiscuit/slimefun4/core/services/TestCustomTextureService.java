@@ -49,7 +49,7 @@ class TestCustomTextureService {
         Assertions.assertFalse(service.isActive());
         Assertions.assertNull(service.getVersion());
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> service.getModelData(null));
+        Assertions.assertThrows(NullPointerException.class, () -> service.getModelData(null));
     }
 
     @Test

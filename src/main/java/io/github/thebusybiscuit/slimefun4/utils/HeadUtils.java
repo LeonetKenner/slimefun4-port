@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.Nonnull;
 
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -59,7 +59,7 @@ public final class HeadUtils {
      * @return The base64-encoded texture value
      */
     public static @Nonnull String getBase64Texture(@Nonnull String texture) {
-        Validate.notNull(texture, "Texture cannot be null");
+        Preconditions.checkNotNull(texture, "Texture cannot be null");
 
         if (CommonPatterns.HEXADECIMAL.matcher(texture).matches()) {
             String value = "{\"textures\":{\"SKIN\":{\"url\":\"" + TEXTURE_URL_PREFIX + texture + "\"}}}";

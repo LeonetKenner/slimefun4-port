@@ -77,7 +77,7 @@ class TestItemGroups {
         item.setItemGroup(itemGroup);
 
         Assertions.assertEquals(1, itemGroup.getItems().size());
-        Assertions.assertThrows(IllegalArgumentException.class, () -> itemGroup.add(null));
+        Assertions.assertThrows(NullPointerException.class, () -> itemGroup.add(null));
     }
 
     @Test
@@ -130,7 +130,7 @@ class TestItemGroups {
     @Test
     @DisplayName("Test LockedItemGroup parental locking")
     void testLockedItemGroupsParents() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> new LockedItemGroup(new NamespacedKey(plugin, "locked"), CustomItemStack.create(Material.GOLD_NUGGET, "&6Locked Test"), (NamespacedKey) null));
+        Assertions.assertThrows(NullPointerException.class, () -> new LockedItemGroup(new NamespacedKey(plugin, "locked"), CustomItemStack.create(Material.GOLD_NUGGET, "&6Locked Test"), (NamespacedKey) null));
 
         ItemGroup group = new ItemGroup(new NamespacedKey(plugin, "unlocked"), CustomItemStack.create(Material.EMERALD, "&5I am SHERlocked"));
         group.register(plugin);
@@ -159,7 +159,7 @@ class TestItemGroups {
         Player player = server.addPlayer();
         PlayerProfile profile = TestUtilities.awaitProfile(player);
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> new LockedItemGroup(new NamespacedKey(plugin, "locked"), CustomItemStack.create(Material.GOLD_NUGGET, "&6Locked Test"), (NamespacedKey) null));
+        Assertions.assertThrows(NullPointerException.class, () -> new LockedItemGroup(new NamespacedKey(plugin, "locked"), CustomItemStack.create(Material.GOLD_NUGGET, "&6Locked Test"), (NamespacedKey) null));
 
         ItemGroup group = new ItemGroup(new NamespacedKey(plugin, "parent"), CustomItemStack.create(Material.EMERALD, "&5I am SHERlocked"));
         group.register(plugin);

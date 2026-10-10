@@ -43,7 +43,7 @@ class TestItemHandlers {
         item.register(plugin);
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> item.addItemHandler());
-        Assertions.assertThrows(IllegalArgumentException.class, () -> item.addItemHandler((MockItemHandler) null));
+        Assertions.assertThrows(NullPointerException.class, () -> item.addItemHandler((MockItemHandler) null));
         Assertions.assertThrows(UnsupportedOperationException.class, () -> item.addItemHandler(new MockItemHandler()));
     }
 

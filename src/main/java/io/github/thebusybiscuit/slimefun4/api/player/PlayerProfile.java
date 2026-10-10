@@ -15,7 +15,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.github.thebusybiscuit.slimefun4.storage.data.PlayerData;
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
@@ -150,7 +150,7 @@ public class PlayerProfile {
      *            Whether the {@link Research} should be unlocked or locked
      */
     public void setResearched(@Nonnull Research research, boolean unlock) {
-        Validate.notNull(research, "Research must not be null!");
+        Preconditions.checkNotNull(research, "Research must not be null!");
         dirty = true;
 
         if (unlock) {
@@ -249,7 +249,7 @@ public class PlayerProfile {
      *            The Soulbound items to store, indexed by their inventory slot
      */
     public void addSoulboundItems(@Nonnull Map<Integer, ItemStack> items) {
-        Validate.notNull(items, "The items cannot be null!");
+        Preconditions.checkNotNull(items, "The items cannot be null!");
 
         if (!items.isEmpty()) {
             this.data.getSoulboundItems().putAll(items);
@@ -406,7 +406,7 @@ public class PlayerProfile {
      * @return If the {@link OfflinePlayer} was cached or not.
      */
     public static boolean get(@Nonnull OfflinePlayer p, @Nonnull Consumer<PlayerProfile> callback) {
-        Validate.notNull(p, "Cannot get a PlayerProfile for: null!");
+        Preconditions.checkNotNull(p, "Cannot get a PlayerProfile for: null!");
         UUID uuid = p.getUniqueId();
 
         Debug.log(TestCase.PLAYER_PROFILE_DATA, "Getting PlayerProfile for {}", uuid);
@@ -464,7 +464,7 @@ public class PlayerProfile {
      * @return Whether the {@link PlayerProfile} was already loaded
      */
     public static boolean request(@Nonnull OfflinePlayer p) {
-        Validate.notNull(p, "Cannot request a Profile for null");
+        Preconditions.checkNotNull(p, "Cannot request a Profile for null");
         Debug.log(TestCase.PLAYER_PROFILE_DATA, "Requesting PlayerProfile for {}", p.getName());
 
         UUID uuid = p.getUniqueId();
@@ -547,7 +547,7 @@ public class PlayerProfile {
     }
 
     public boolean hasFullProtectionAgainst(@Nonnull ProtectionType type) {
-        Validate.notNull(type, "ProtectionType must not be null.");
+        Preconditions.checkNotNull(type, "ProtectionType must not be null.");
 
         int armorCount = 0;
         NamespacedKey setId = null;

@@ -2,7 +2,7 @@ package io.github.bakedlibs.dough.versions;
 
 import javax.annotation.Nonnull;
 
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 
@@ -58,7 +58,7 @@ public class MinecraftVersion extends SemanticVersion {
      *             This exception is thrown when the {@link Server} version could not be identified
      */
     public static @Nonnull MinecraftVersion of(@Nonnull Server server) throws UnknownServerVersionException {
-        Validate.notNull(server, "Server should not be null!");
+        Preconditions.checkNotNull(server, "Server should not be null!");
         String bukkitVersion = server.getBukkitVersion();
 
         try {

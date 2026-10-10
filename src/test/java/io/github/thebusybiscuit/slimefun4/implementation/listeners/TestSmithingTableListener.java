@@ -1,9 +1,10 @@
 package io.github.thebusybiscuit.slimefun4.implementation.listeners;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 
-import org.apache.commons.lang3.mutable.MutableObject;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
@@ -84,20 +85,20 @@ class TestSmithingTableListener {
         Player player = server.addPlayer();
 
         SmithingInventory inv = Mockito.mock(SmithingInventory.class);
-        MutableObject<ItemStack> result = new MutableObject<>(new ItemStack(Material.NETHERITE_PICKAXE));
+        AtomicReference<ItemStack> result = new AtomicReference<>(new ItemStack(Material.NETHERITE_PICKAXE));
 
         Mockito.doAnswer(invocation -> {
             ItemStack argument = invocation.getArgument(0);
-            result.setValue(argument);
+            result.set(argument);
             return null;
         }).when(inv).setResult(Mockito.any());
 
-        Mockito.when(inv.getResult()).thenAnswer(invocation -> result.getValue());
+        Mockito.when(inv.getResult()).thenAnswer(invocation -> result.get());
         // MinecraftVersion#isAtLeast always returns true during unit test, so we use the 1.20 layout here.
         Mockito.when(inv.getContents()).thenReturn(new ItemStack[] { new ItemStack(Material.NETHERITE_UPGRADE_SMITHING_TEMPLATE), tool, material, null });
 
         InventoryView view = player.openInventory(inv);
-        PrepareSmithingEvent event = new PrepareSmithingEvent(view, result.getValue());
+        PrepareSmithingEvent event = new PrepareSmithingEvent(view, result.get());
 
         listener.onPrepareSmith(event);
         return event;

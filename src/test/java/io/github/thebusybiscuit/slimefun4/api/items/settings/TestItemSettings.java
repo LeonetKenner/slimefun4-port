@@ -39,7 +39,7 @@ class TestItemSettings {
         item.register(plugin);
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> item.addItemSetting());
-        Assertions.assertThrows(IllegalArgumentException.class, () -> item.addItemSetting((ItemSetting<String>) null));
+        Assertions.assertThrows(NullPointerException.class, () -> item.addItemSetting((ItemSetting<String>) null));
         Assertions.assertThrows(UnsupportedOperationException.class, () -> item.addItemSetting(new ItemSetting<>(item, "test", "Hello World")));
     }
 
