@@ -93,7 +93,26 @@ public class ExplosiveTool extends SimpleSlimefunItem<ToolUseHandler> implements
         List<Block> blocksToDestroy = new ArrayList<>();
 
         if (callExplosionEvent.getValue()) {
-            BlockExplodeEvent blockExplodeEvent = createNewBlockExplodeEvent(b, blocks, 0);
+            /*
+             * Fixes #3601 - Our own ExplosionsListener consumes Slimefun blocks from
+             * any BlockExplodeEvent and handles them on its own, which would cause
+             * those blocks to be destroyed without dropping. To ensure the explosive
+             * tool drops them like it normally does, we keep Slimefun blocks out of
+             * the event and handle them ourselves below. Non-Slimefun blocks are still
+             * passed to the event so that other plugins can protect them.
+             */
+            List<Block> explosionBlocks = new ArrayList<>(blocks.size());
+            List<Block> slimefunBlocks = new ArrayList<>();
+
+            for (Block block : blocks) {
+                if (BlockStorage.check(block) != null) {
+                    slimefunBlocks.add(block);
+                } else {
+                    explosionBlocks.add(block);
+                }
+            }
+
+            BlockExplodeEvent blockExplodeEvent = createNewBlockExplodeEvent(b, explosionBlocks, 0);
             Bukkit.getServer().getPluginManager().callEvent(blockExplodeEvent);
 
             if (!blockExplodeEvent.isCancelled()) {
@@ -103,6 +122,12 @@ public class ExplosiveTool extends SimpleSlimefunItem<ToolUseHandler> implements
                             drops.addAll(CustomBlock.byAlreadyPlaced(block).getLoot());
                             CustomBlock.remove(block.getLocation());
                         }
+                        blocksToDestroy.add(block);
+                    }
+                }
+
+                for (Block block : slimefunBlocks) {
+                    if (canBreak(p, block)) {
                         blocksToDestroy.add(block);
                     }
                 }

@@ -14,6 +14,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.lang.Validate;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * The data which backs {@link io.github.thebusybiscuit.slimefun4.api.player.PlayerProfile}
@@ -28,10 +29,27 @@ public class PlayerData {
     private final Map<Integer, PlayerBackpack> backpacks = new HashMap<>();
     private final Set<Waypoint> waypoints = new HashSet<>();
 
+    /**
+     * This holds any Soulbound items which have not yet been returned to the
+     * {@link org.bukkit.entity.Player}. The key is the inventory slot the item
+     * was in when the {@link org.bukkit.entity.Player} died.
+     * <p>
+     * They are persisted so that they are not lost when the server is restarted
+     * while a {@link org.bukkit.entity.Player} is still on the death screen.
+     *
+     * @see io.github.thebusybiscuit.slimefun4.implementation.listeners.SoulboundListener
+     */
+    private final Map<Integer, ItemStack> soulboundItems = new HashMap<>();
+
     public PlayerData(Set<Research> researches, Map<Integer, PlayerBackpack> backpacks, Set<Waypoint> waypoints) {
+        this(researches, backpacks, waypoints, new HashMap<>());
+    }
+
+    public PlayerData(Set<Research> researches, Map<Integer, PlayerBackpack> backpacks, Set<Waypoint> waypoints, Map<Integer, ItemStack> soulboundItems) {
         this.researches.addAll(researches);
         this.backpacks.putAll(backpacks);
         this.waypoints.addAll(waypoints);
+        this.soulboundItems.putAll(soulboundItems);
     }
 
     public Set<Research> getResearches() {
@@ -92,5 +110,17 @@ public class PlayerData {
     public void removeWaypoint(@Nonnull Waypoint waypoint) {
         Validate.notNull(waypoint, "Cannot remove a 'null' waypoint!");
         waypoints.remove(waypoint);
+    }
+
+    /**
+     * This returns a mutable {@link Map} of all Soulbound {@link ItemStack ItemStacks}
+     * which still have to be returned to the {@link org.bukkit.entity.Player}.
+     * The key is the inventory slot the item was in.
+     *
+     * @return A {@link Map} of the not yet returned Soulbound items
+     */
+    @Nonnull
+    public Map<Integer, ItemStack> getSoulboundItems() {
+        return soulboundItems;
     }
 }

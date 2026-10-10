@@ -385,8 +385,18 @@ public final class SlimefunUtils {
                 ItemMeta possibleSfItemMeta = sfitem.getItemMeta();
                 String id = Slimefun.getItemDataService().getItemData(itemMeta).orElse(null);
                 String possibleItemId = Slimefun.getItemDataService().getItemData(possibleSfItemMeta).orElse(null);
-                // Prioritize SlimefunItem id comparison over ItemMeta comparison
-                if (id != null && id.equals(possibleItemId)) {
+
+                if (id != null && possibleItemId != null) {
+                    /*
+                     * Both items are Slimefun items. If their IDs differ then they are
+                     * different items and must never be treated as similar, even if their
+                     * names and lores happen to be identical (fixes #4318).
+                     */
+                    if (!id.equals(possibleItemId)) {
+                        Debug.log(TestCase.CARGO_INPUT_TESTING, "  Item IDs don't match ({} != {})", id, possibleItemId);
+                        return false;
+                    }
+
                     Debug.log(TestCase.CARGO_INPUT_TESTING, "  Item IDs matched!");
 
                     /*
@@ -400,19 +410,85 @@ public final class SlimefunUtils {
                         return optionalDistinctive.get().canStack(possibleSfItemMeta, itemMeta);
                     }
                     return true;
+                } else if (id != null || possibleItemId != null) {
+                    /*
+                     * Exactly one of the two items is a Slimefun item.
+                     * A Slimefun item must never be considered similar to a
+                     * non-Slimefun item (fixes #4318).
+                     */
+                    Debug.log(TestCase.CARGO_INPUT_TESTING, "  Only one item is a Slimefun item ({} / {})", id, possibleItemId);
+                    return false;
                 } else {
-                    Debug.log(TestCase.CARGO_INPUT_TESTING, "  Item IDs don't match, checking meta {} == {} (lore: {})", itemMeta, possibleSfItemMeta, checkLore);
-                    return equalsItemMeta(itemMeta, possibleSfItemMeta, checkLore);
+                    /*
+                     * Neither item is a Slimefun item, so we have to compare their
+                     * complete ItemMeta. Comparing only the name and lore is not enough
+                     * here, since items like signed books or player heads may share both
+                     * but still be entirely different items (fixes #4020).
+                     */
+                    Debug.log(TestCase.CARGO_INPUT_TESTING, "  Comparing full meta {} == {} (lore: {})", itemMeta, possibleSfItemMeta, checkLore);
+                    return matchesItemMeta(itemMeta, possibleSfItemMeta, checkLore);
                 }
             } else if (sfitem.hasItemMeta()) {
                 ItemMeta sfItemMeta = sfitem.getItemMeta();
                 Debug.log(TestCase.CARGO_INPUT_TESTING, "  Comparing meta (vanilla items?) - {} == {} (lore: {})", itemMeta, sfItemMeta, checkLore);
                 return equalsItemMeta(itemMeta, sfItemMeta, checkLore);
             } else {
-                return false;
+                /*
+                 * The item carries an ItemMeta but the recipe/template does not.
+                 * This happens for vanilla recipe ingredients when the provided item has
+                 * additional NBT, e.g. CustomModelData or entity data (fixes #3446).
+                 * Since their Material already matched, we treat them as similar - but only
+                 * if the provided item is not a Slimefun item itself, otherwise we would
+                 * allow Slimefun items to be used in place of plain vanilla ingredients.
+                 */
+                String id = Slimefun.getItemDataService().getItemData(itemMeta).orElse(null);
+                Debug.log(TestCase.CARGO_INPUT_TESTING, "  sfitem has no meta, item id: {}", id);
+                return id == null;
             }
         } else {
             return !sfitem.hasItemMeta();
+        }
+    }
+
+    /**
+     * Compares the complete {@link ItemMeta} of two items.
+     * <p>
+     * Unlike {@link #equalsItemMeta(ItemMeta, ItemMeta, boolean)} this method also takes properties
+     * such as book pages or a player head's skin into account. That is required to prevent items
+     * which merely share their name and lore from being mixed up (see #4020).
+     * <p>
+     * Depending on {@code checkLore} the lore is either ignored entirely or normalized by removing
+     * ignored lines (such as the Soulbound one) before comparing.
+     *
+     * @param itemMeta
+     *            The {@link ItemMeta} of the item being tested
+     * @param sfitemMeta
+     *            The {@link ItemMeta} of the item being compared against
+     * @param checkLore
+     *            Whether the lore should be part of the comparison
+     *
+     * @return Whether the two {@link ItemMeta ItemMetas} can be considered equal
+     */
+    private static boolean matchesItemMeta(@Nonnull ItemMeta itemMeta, @Nonnull ItemMeta sfitemMeta, boolean checkLore) {
+        ItemMeta first = itemMeta.clone();
+        ItemMeta second = sfitemMeta.clone();
+
+        if (checkLore) {
+            stripIgnoredLore(first);
+            stripIgnoredLore(second);
+        } else {
+            first.setLore(null);
+            second.setLore(null);
+        }
+
+        return first.equals(second);
+    }
+
+    private static void stripIgnoredLore(@Nonnull ItemMeta meta) {
+        if (meta.hasLore()) {
+            List<String> lore = meta.getLore();
+            lore.removeIf(SlimefunUtils::isLineIgnored);
+            meta.setLore(lore.isEmpty() ? null : lore);
         }
     }
 

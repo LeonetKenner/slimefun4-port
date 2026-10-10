@@ -84,6 +84,17 @@ public final class ThreadService {
     }
 
     /**
+     * This method shuts down both underlying thread pools.
+     * It has to be called when the {@link JavaPlugin} is being disabled, otherwise
+     * the lingering threads will be caught by server implementations like Paper,
+     * which then nag about the plugin not shutting down its async tasks (fixes #3560).
+     */
+    public void shutdown() {
+        cachedPool.shutdownNow();
+        scheduledPool.shutdownNow();
+    }
+
+    /**
      * Get the caller of a given method, this should only be used for debugging purposes and is not performant.
      *
      * @return The caller of the method that called this method.

@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.commons.lang.Validate;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -23,6 +24,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -52,6 +54,7 @@ import io.github.thebusybiscuit.slimefun4.implementation.items.backpacks.Slimefu
 public class BackpackListener implements Listener {
 
     private final Map<UUID, ItemStack> backpacks = new HashMap<>();
+    private final Map<UUID, Inventory> backpackInventories = new HashMap<>();
 
     public void register(@Nonnull Slimefun plugin) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -61,12 +64,24 @@ public class BackpackListener implements Listener {
     public void onClose(InventoryCloseEvent e) {
         Player p = (Player) e.getPlayer();
 
+        /*
+         * Only react to the inventory that actually belongs to the backpack we are tracking.
+         * Otherwise closing any unrelated inventory would falsely unregister the backpack.
+         * This happens for example when the Slimefun Guide is held simultaneously: the guide
+         * is closed the moment the backpack opens on top of it, which used to remove all of
+         * the backpack's protections and allowed moving disallowed items (fixes #4131).
+         */
+        if (backpackInventories.get(p.getUniqueId()) != e.getInventory()) {
+            return;
+        }
+
         if (markBackpackDirty(p)) {
             SoundEffect.BACKPACK_CLOSE_SOUND.playFor(p);
         }
     }
 
     private boolean markBackpackDirty(@Nonnull Player p) {
+        backpackInventories.remove(p.getUniqueId());
         ItemStack backpack = backpacks.remove(p.getUniqueId());
 
         if (backpack != null) {
@@ -172,7 +187,21 @@ public class BackpackListener implements Listener {
 
             PlayerProfile.getBackpack(item, backpack -> {
                 if (backpack != null) {
-                    backpack.open(p);
+                    /*
+                     * The lookup may happen off the main thread, so make sure we register the
+                     * inventory and open it on the main thread. This allows us to tell the
+                     * backpack's own InventoryCloseEvent apart from other inventories (see #4131).
+                     */
+                    Runnable openTask = () -> {
+                        backpackInventories.put(p.getUniqueId(), backpack.getInventory());
+                        backpack.open(p);
+                    };
+
+                    if (Bukkit.isPrimaryThread()) {
+                        openTask.run();
+                    } else {
+                        Slimefun.runSync(openTask);
+                    }
                 }
             });
         } else {

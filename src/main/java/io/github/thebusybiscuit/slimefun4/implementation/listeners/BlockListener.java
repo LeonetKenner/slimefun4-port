@@ -216,6 +216,16 @@ public class BlockListener implements Listener {
         }
 
         if (sfItem != null && !sfItem.useVanillaBlockBreaking()) {
+            /*
+             * Fixes #4037 - The block may already have been destroyed by the tool
+             * handler before this method is called. For example an explosive tool
+             * destroys sensitive blocks above/below it. Since the block is gone, we
+             * must not process it a second time or its drops would be duplicated.
+             */
+            if (BlockStorage.check(e.getBlock()) == null) {
+                return;
+            }
+
             sfItem.callItemHandler(BlockBreakHandler.class, handler -> handler.onPlayerBreak(e, item, drops));
 
             if (e.isCancelled()) {
@@ -248,8 +258,17 @@ public class BlockListener implements Listener {
 
             // Fixes #2560
             if (e.isDropItems()) {
-                // Disable normal block drops
-                e.setDropItems(false);
+                /*
+                 * Fixes #4051 - We may only suppress the vanilla drops if this block is a
+                 * Slimefun block whose drops we added to the list ourselves. If the drops
+                 * only originate from additional blocks (e.g. an explosive tool), the
+                 * broken block itself would otherwise be lost.
+                 */
+                SlimefunItem sfItem = BlockStorage.check(e.getBlock());
+
+                if (sfItem != null && !sfItem.useVanillaBlockBreaking()) {
+                    e.setDropItems(false);
+                }
 
                 for (ItemStack drop : drops) {
                     // Prevent null or air from being dropped

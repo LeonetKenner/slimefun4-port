@@ -18,6 +18,7 @@ import javax.annotation.Nonnull;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -75,10 +76,24 @@ public class LegacyStorage implements Storage {
             }
         }
 
+        // Load Soulbound items which were not yet returned (e.g. the server was restarted while on the death screen)
+        Map<Integer, ItemStack> soulboundItems = new HashMap<>();
+        for (String key : playerFile.getKeys("soulbound")) {
+            try {
+                ItemStack item = playerFile.getItem("soulbound." + key);
+
+                if (item != null) {
+                    soulboundItems.put(Integer.parseInt(key), item);
+                }
+            } catch (Exception x) {
+                Slimefun.logger().log(Level.WARNING, x, () -> "Could not load Soulbound item \"" + key + "\" for Player \"" + uuid + '"');
+            }
+        }
+
         long end = System.nanoTime();
         Slimefun.getAnalyticsService().recordPlayerProfileDataTime("legacy", true, end - start);
 
-        return new PlayerData(researches, backpacks, waypoints);
+        return new PlayerData(researches, backpacks, waypoints, soulboundItems);
     }
 
     // The current design of saving all at once isn't great, this will be refined.
@@ -135,6 +150,12 @@ public class LegacyStorage implements Storage {
             // Legacy data uses IDs
             waypointsFile.setValue(waypoint.getId(), waypoint.getLocation());
             waypointsFile.setValue(waypoint.getId() + ".name", waypoint.getName());
+        }
+
+        // Save Soulbound items which were not yet returned to the Player
+        playerFile.setValue("soulbound", null);
+        for (Map.Entry<Integer, ItemStack> entry : data.getSoulboundItems().entrySet()) {
+            playerFile.setValue("soulbound." + entry.getKey(), entry.getValue());
         }
 
         // Save files

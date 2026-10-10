@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
-import io.github.thebusybiscuit.slimefun4.api.items.HashedArmorpiece;
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.player.PlayerProfile;
 import io.github.thebusybiscuit.slimefun4.implementation.items.armor.RainbowArmorPiece;
 
@@ -28,17 +28,23 @@ public class RainbowArmorTask extends AbstractArmorTask {
     @Override
     @ParametersAreNonnullByDefault
     protected void onPlayerTick(Player p, PlayerProfile profile) {
+        ItemStack[] armor = p.getInventory().getArmorContents();
+
         for (int i = 0; i < 4; i++) {
-            ItemStack item = p.getInventory().getArmorContents()[i];
+            ItemStack item = armor[i];
 
             if (item != null && item.hasItemMeta()) {
-                HashedArmorpiece armorPiece = profile.getArmor()[i];
+                /*
+                 * We resolve the SlimefunItem from the actual ItemStack instead of relying on the
+                 * PlayerProfile's cached armor piece. That cache is updated by a separate task and may
+                 * still reference a previously worn rainbow piece, which caused normal or custom
+                 * leather armor to be recolored after a quick armor swap (see issue #3931).
+                 */
+                SlimefunItem sfItem = SlimefunItem.getByItem(item);
 
-                armorPiece.getItem().ifPresent(sfArmorPiece -> {
-                    if (sfArmorPiece instanceof RainbowArmorPiece rainbowArmorPiece && rainbowArmorPiece.canUse(p, true)) {
-                        updateRainbowArmor(item, rainbowArmorPiece);
-                    }
-                });
+                if (sfItem instanceof RainbowArmorPiece rainbowArmorPiece && rainbowArmorPiece.canUse(p, true)) {
+                    updateRainbowArmor(item, rainbowArmorPiece);
+                }
             }
         }
     }

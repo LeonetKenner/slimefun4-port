@@ -275,6 +275,36 @@ public abstract class AContainer extends SlimefunItem implements InventoryBlock,
         return recipes;
     }
 
+    @Override
+    public void load() {
+        super.load();
+
+        /*
+         * Fixes #4333 - A machine must not be able to produce (or consume) an item
+         * that has been disabled in the config. MultiBlockMachine#load() performs the
+         * same filtering for multi-block machines.
+         */
+        recipes.removeIf(recipe -> {
+            if (containsDisabledItem(recipe.getOutput()) || containsDisabledItem(recipe.getInput())) {
+                return true;
+            }
+
+            return false;
+        });
+    }
+
+    private boolean containsDisabledItem(@Nonnull ItemStack[] items) {
+        for (ItemStack item : items) {
+            SlimefunItem sfItem = SlimefunItem.getByItem(item);
+
+            if (sfItem != null && sfItem.isDisabled()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public List<ItemStack> getDisplayRecipes() {
         List<ItemStack> displayRecipes = new ArrayList<>(recipes.size() * 2);
 

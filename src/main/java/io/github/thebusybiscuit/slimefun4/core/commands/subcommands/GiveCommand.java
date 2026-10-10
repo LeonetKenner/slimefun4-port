@@ -1,5 +1,7 @@
 package io.github.thebusybiscuit.slimefun4.core.commands.subcommands;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -12,7 +14,6 @@ import org.bukkit.inventory.ItemStack;
 
 import io.github.bakedlibs.dough.common.CommonPatterns;
 import io.github.bakedlibs.dough.common.PlayerList;
-import io.github.bakedlibs.dough.items.CustomItemStack;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.core.commands.SlimefunCommand;
 import io.github.thebusybiscuit.slimefun4.core.commands.SubCommand;
@@ -65,7 +66,7 @@ class GiveCommand extends SubCommand {
 
             if (amount > 0) {
                 Slimefun.getLocalization().sendMessage(p, "messages.given-item", true, msg -> msg.replace(PLACEHOLDER_ITEM, sfItem.getItemName()).replace(PLACEHOLDER_AMOUNT, String.valueOf(amount)));
-                Map<Integer, ItemStack> excess = p.getInventory().addItem(CustomItemStack.create(sfItem.getItem(), amount));
+                Map<Integer, ItemStack> excess = p.getInventory().addItem(splitIntoStacks(sfItem.getItem(), amount));
                 if (Slimefun.getCfg().getBoolean("options.drop-excess-sf-give-items") && !excess.isEmpty()) {
                     for (ItemStack is : excess.values()) {
                         p.getWorld().dropItem(p.getLocation(), is);
@@ -77,6 +78,33 @@ class GiveCommand extends SubCommand {
                 Slimefun.getLocalization().sendMessage(sender, "messages.invalid-amount", true, msg -> msg.replace(PLACEHOLDER_AMOUNT, args[3]));
             }
         }
+    }
+
+    /**
+     * Splits the given amount of an {@link ItemStack} into multiple stacks that respect
+     * the item's maximum stack size. This prevents the command from creating oversized
+     * stacks (see issue #4272).
+     *
+     * @param item
+     *            The {@link ItemStack} to give
+     * @param amount
+     *            The total amount to give
+     *
+     * @return An array of {@link ItemStack ItemStacks} whose amounts add up to the requested amount
+     */
+    private static ItemStack[] splitIntoStacks(ItemStack item, int amount) {
+        int maxStackSize = Math.max(1, item.getMaxStackSize());
+        List<ItemStack> stacks = new ArrayList<>();
+
+        int remaining = amount;
+        while (remaining > 0) {
+            ItemStack stack = item.clone();
+            stack.setAmount(Math.min(remaining, maxStackSize));
+            stacks.add(stack);
+            remaining -= stack.getAmount();
+        }
+
+        return stacks.toArray(new ItemStack[0]);
     }
 
     private int parseAmount(String[] args) {

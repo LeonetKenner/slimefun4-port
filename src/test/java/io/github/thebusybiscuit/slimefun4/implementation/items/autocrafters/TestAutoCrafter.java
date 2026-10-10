@@ -1,5 +1,8 @@
 package io.github.thebusybiscuit.slimefun4.implementation.items.autocrafters;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.annotation.Nonnull;
 
 import org.bukkit.Material;
@@ -200,8 +203,80 @@ class TestAutoCrafter {
         Assertions.assertEquals(EnergyNetComponentType.CONSUMER, crafter.getEnergyComponentType());
     }
 
+    @Test
+    @DisplayName("Test crafting a firework rocket pseudo-recipe")
+    void testFireworkRocketRecipe() {
+        SpecialRecipe recipe = SpecialRecipes.getByKey("slimefun:auto_crafter_firework_rocket_1");
+        Assertions.assertNotNull(recipe);
+
+        AbstractAutoCrafter crafter = getVanillaAutoCrafter();
+        InventoryMock inv = new ChestInventoryMock(null, 9);
+        inv.addItem(new ItemStack(Material.PAPER));
+        inv.addItem(new ItemStack(Material.GUNPOWDER));
+
+        Assertions.assertTrue(crafter.craft(inv, recipe));
+        Assertions.assertFalse(inv.contains(Material.PAPER, 1));
+        Assertions.assertFalse(inv.contains(Material.GUNPOWDER, 1));
+        Assertions.assertTrue(inv.containsAtLeast(recipe.getResult(), 1));
+    }
+
+    @Test
+    @DisplayName("Test crafting a shulker box coloring pseudo-recipe")
+    void testShulkerBoxColoringRecipe() {
+        SpecialRecipe recipe = SpecialRecipes.getByKey("slimefun:auto_crafter_shulker_box_red");
+        Assertions.assertNotNull(recipe);
+
+        AbstractAutoCrafter crafter = getVanillaAutoCrafter();
+        InventoryMock inv = new ChestInventoryMock(null, 9);
+        inv.addItem(new ItemStack(Material.SHULKER_BOX));
+        inv.addItem(new ItemStack(Material.RED_DYE));
+
+        Assertions.assertTrue(crafter.craft(inv, recipe));
+        Assertions.assertFalse(inv.contains(Material.SHULKER_BOX, 1));
+        Assertions.assertFalse(inv.contains(Material.RED_DYE, 1));
+        Assertions.assertTrue(inv.containsAtLeast(new ItemStack(Material.RED_SHULKER_BOX), 1));
+    }
+
+    @Test
+    @DisplayName("Test that getRecipesFor() offers the matching special recipe")
+    void testGetRecipesForSpecialRecipe() {
+        VanillaAutoCrafter crafter = getVanillaAutoCrafter();
+
+        // Shulker boxes derive their colour from the Material itself, so the similarity
+        // check is reliable here. (MockBukkit does not compare firework powers.)
+        List<AbstractRecipe> recipes = crafter.getRecipesFor(new ItemStack(Material.RED_SHULKER_BOX));
+
+        Assertions.assertEquals(1, recipes.size());
+        Assertions.assertEquals("slimefun:auto_crafter_shulker_box_red", recipes.get(0).toString());
+    }
+
+    @Test
+    @DisplayName("Test that special recipes have unique keys and are returned as copies")
+    void testSpecialRecipeRegistry() {
+        List<String> keys = new ArrayList<>();
+
+        for (SpecialRecipe recipe : SpecialRecipes.get()) {
+            Assertions.assertTrue(keys.add(recipe.toString()), "Duplicate special recipe key: " + recipe);
+        }
+
+        Assertions.assertFalse(keys.isEmpty());
+
+        // A fresh instance must be returned so the enabled-state is per auto crafter
+        SpecialRecipe first = SpecialRecipes.getByKey("slimefun:auto_crafter_firework_rocket_1");
+        SpecialRecipe second = SpecialRecipes.getByKey("slimefun:auto_crafter_firework_rocket_1");
+
+        Assertions.assertNotNull(first);
+        Assertions.assertNotSame(first, second);
+
+        first.setEnabled(false);
+        Assertions.assertTrue(second.isEnabled());
+
+        Assertions.assertNull(SpecialRecipes.getByKey("slimefun:does_not_exist"));
+        Assertions.assertNull(SpecialRecipes.getByKey(null));
+    }
+
     @Nonnull
-    private AbstractAutoCrafter getVanillaAutoCrafter() {
+    private VanillaAutoCrafter getVanillaAutoCrafter() {
         SlimefunItemStack item = new SlimefunItemStack("MOCK_AUTO_CRAFTER", Material.CRAFTING_TABLE, "Mock Auto Crafter");
         return new VanillaAutoCrafter(TestUtilities.getItemGroup(plugin, "auto_crafter"), item, RecipeType.NULL, new ItemStack[9]);
     }

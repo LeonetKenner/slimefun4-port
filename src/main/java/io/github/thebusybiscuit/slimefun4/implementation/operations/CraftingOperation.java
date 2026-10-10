@@ -3,8 +3,12 @@ package io.github.thebusybiscuit.slimefun4.implementation.operations;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.lang.Validate;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 
+import io.github.bakedlibs.dough.blocks.BlockPosition;
 import io.github.thebusybiscuit.slimefun4.core.machines.MachineOperation;
 
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecipe;
@@ -59,6 +63,28 @@ public class CraftingOperation implements MachineOperation {
     @Override
     public int getTotalTicks() {
         return totalTicks;
+    }
+
+    /**
+     * Fixes #4268 - If a machine is destroyed while an operation is still in progress,
+     * the ingredients that were already consumed must be returned to the player rather
+     * than being deleted.
+     */
+    @Override
+    public void onCancel(@Nonnull BlockPosition position) {
+        World world = position.getWorld();
+
+        if (world == null) {
+            return;
+        }
+
+        Location location = position.toLocation();
+
+        for (ItemStack ingredient : ingredients) {
+            if (ingredient != null && ingredient.getType() != Material.AIR) {
+                world.dropItemNaturally(location, ingredient.clone());
+            }
+        }
     }
 
 }

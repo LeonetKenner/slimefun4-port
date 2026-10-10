@@ -42,13 +42,15 @@ import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
 /**
  * The {@link VanillaAutoCrafter} is an implementation of the {@link AbstractAutoCrafter}.
  * It can craft items that are crafted using a normal crafting table.
- * Only {@link ShapedRecipe} and {@link ShapelessRecipe} are therefore supported.
+ * {@link ShapedRecipe} and {@link ShapelessRecipe} are therefore supported, as well as
+ * vanilla "special" recipes (e.g. firework rockets) via {@link SpecialRecipes}.
  *
  * @author TheBusyBiscuit
  *
  * @see AbstractAutoCrafter
  * @see EnhancedAutoCrafter
  * @see VanillaRecipe
+ * @see SpecialRecipe
  *
  */
 public class VanillaAutoCrafter extends AbstractAutoCrafter {
@@ -68,22 +70,30 @@ public class VanillaAutoCrafter extends AbstractAutoCrafter {
             String value = container.get(recipeStorageKey, PersistentDataType.STRING);
 
             if (value != null) {
-                String[] values = CommonPatterns.COLON.split(value);
+                boolean enabled = !container.has(recipeEnabledKey, PersistentDataType.BYTE);
 
-                /*
-                 * Normally this constructor should not be used.
-                 * But it is completely fine for this purpose since we only use
-                 * it for lookups.
-                 */
-                @SuppressWarnings("deprecation")
-                NamespacedKey key = new NamespacedKey(values[0], values[1]);
-                Recipe keyedRecipe = Slimefun.getMinecraftRecipeService().getRecipe(key);
+                // Fixes #4019 - Check our pseudo-recipes for vanilla "special" recipes first
+                AbstractRecipe recipe = SpecialRecipes.getByKey(value);
 
-                if (keyedRecipe != null) {
-                    boolean enabled = !container.has(recipeEnabledKey, PersistentDataType.BYTE);
-                    AbstractRecipe recipe = AbstractRecipe.of(keyedRecipe);
+                if (recipe == null) {
+                    String[] values = CommonPatterns.COLON.split(value);
+
+                    /*
+                     * Normally this constructor should not be used.
+                     * But it is completely fine for this purpose since we only use
+                     * it for lookups.
+                     */
+                    @SuppressWarnings("deprecation")
+                    NamespacedKey key = new NamespacedKey(values[0], values[1]);
+                    Recipe keyedRecipe = Slimefun.getMinecraftRecipeService().getRecipe(key);
+
+                    if (keyedRecipe != null) {
+                        recipe = AbstractRecipe.of(keyedRecipe);
+                    }
+                }
+
+                if (recipe != null) {
                     recipe.setEnabled(enabled);
-
                     return recipe;
                 }
             }
@@ -107,7 +117,7 @@ public class VanillaAutoCrafter extends AbstractAutoCrafter {
     @Override
     protected void updateRecipe(@Nonnull Block b, @Nonnull Player p) {
         ItemStack item = p.getInventory().getItemInMainHand();
-        List<Recipe> recipes = getRecipesFor(item);
+        List<AbstractRecipe> recipes = getRecipesFor(item);
 
         if (recipes.isEmpty()) {
             Slimefun.getLocalization().sendMessage(p, "messages.auto-crafting.no-recipes");
@@ -129,7 +139,7 @@ public class VanillaAutoCrafter extends AbstractAutoCrafter {
     }
 
     @ParametersAreNonnullByDefault
-    private void offerRecipe(Player p, Block b, List<Recipe> recipes, int index, ChestMenu menu, AsyncRecipeChoiceTask task) {
+    private void offerRecipe(Player p, Block b, List<AbstractRecipe> recipes, int index, ChestMenu menu, AsyncRecipeChoiceTask task) {
         Validate.isTrue(index >= 0 && index < recipes.size(), "page must be between 0 and " + (recipes.size() - 1));
 
         menu.replaceExistingItem(46, ChestMenuUtils.getPreviousButton(p, index + 1, recipes.size()));
@@ -152,7 +162,7 @@ public class VanillaAutoCrafter extends AbstractAutoCrafter {
             return false;
         });
 
-        AbstractRecipe recipe = AbstractRecipe.of(recipes.get(index));
+        AbstractRecipe recipe = recipes.get(index);
 
         menu.replaceExistingItem(49, CustomItemStack.create(Material.CRAFTING_TABLE, ChatColor.GREEN + Slimefun.getLocalization().getMessage(p, "messages.auto-crafting.select")));
         menu.addMenuClickHandler(49, (pl, slot, item, action) -> {
@@ -171,15 +181,26 @@ public class VanillaAutoCrafter extends AbstractAutoCrafter {
     }
 
     @Nonnull
-    private List<Recipe> getRecipesFor(@Nonnull ItemStack item) {
-        List<Recipe> recipes = new ArrayList<>();
+    List<AbstractRecipe> getRecipesFor(@Nonnull ItemStack item) {
+        List<AbstractRecipe> recipes = new ArrayList<>();
 
         // Fixes #2913 - Bukkit.getRecipesFor() only checks for Materials
         MinecraftRecipeService recipeService = Slimefun.getMinecraftRecipeService();
 
         for (Recipe recipe : recipeService.getRecipesFor(item)) {
             if (recipe instanceof ShapedRecipe || recipe instanceof ShapelessRecipe) {
-                recipes.add(recipe);
+                AbstractRecipe abstractRecipe = AbstractRecipe.of(recipe);
+
+                if (abstractRecipe != null) {
+                    recipes.add(abstractRecipe);
+                }
+            }
+        }
+
+        // Fixes #4019 - Add pseudo-recipes for vanilla "special" recipes which Bukkit does not expose
+        for (SpecialRecipe specialRecipe : SpecialRecipes.get()) {
+            if (item.isSimilar(specialRecipe.getResult())) {
+                recipes.add(specialRecipe);
             }
         }
 

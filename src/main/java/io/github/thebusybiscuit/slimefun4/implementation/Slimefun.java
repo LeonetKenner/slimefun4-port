@@ -416,6 +416,9 @@ public class Slimefun extends JavaPlugin implements SlimefunAddon {
         // Cancel all tasks from this plugin immediately
         Bukkit.getScheduler().cancelTasks(this);
 
+        // Shut down our own thread pools so no async tasks are left running (fixes #3560)
+        threadService.shutdown();
+
         // Finishes all started movements/removals of block data
         try {
             ticker.halt();

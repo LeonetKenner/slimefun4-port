@@ -1,5 +1,7 @@
 package io.github.thebusybiscuit.slimefun4.implementation.listeners.entity;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -81,10 +83,14 @@ public class PiglinListener implements Listener {
             Set<ItemStack> drops = Slimefun.getRegistry().getBarteringDrops();
 
             /*
-             * NOTE: Getting a new random number each iteration because multiple items could have the same
-             * % chance to drop, and if one fails all items with that number will fail.
+             * NOTE: Getting a new random number for each entry because multiple items could have the same
+             * % chance to drop, and if one failed all items with that number would fail too.
              * Getting a new random number will allow multiple items with the same % chance to drop.
+             *
+             * All eligible candidates are collected first and then chosen at random. This prevents a
+             * bias towards items that happen to be iterated first (see issue #4326).
              */
+            List<ItemStack> eligible = new ArrayList<>();
 
             for (ItemStack is : drops) {
                 SlimefunItem sfi = SlimefunItem.getByItem(is);
@@ -96,10 +102,13 @@ public class PiglinListener implements Listener {
                     if (chance < 1 || chance >= 100) {
                         sfi.warn("The Piglin Bartering chance must be between 1-99% on item: " + sfi.getId());
                     } else if (chance > ThreadLocalRandom.current().nextInt(100)) {
-                        e.getItemDrop().setItemStack(sfi.getRecipeOutput());
-                        return;
+                        eligible.add(sfi.getRecipeOutput());
                     }
                 }
+            }
+
+            if (!eligible.isEmpty()) {
+                e.getItemDrop().setItemStack(eligible.get(ThreadLocalRandom.current().nextInt(eligible.size())));
             }
         }
     }

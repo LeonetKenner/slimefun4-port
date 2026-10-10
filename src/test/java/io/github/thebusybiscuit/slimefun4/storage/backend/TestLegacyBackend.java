@@ -3,11 +3,13 @@ package io.github.thebusybiscuit.slimefun4.storage.backend;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
@@ -417,6 +419,33 @@ class TestLegacyBackend {
         Assertions.assertTrue(assertion.getResearches().contains(duplicateResearch));
     }
     
+    @Test
+    void testSavingSoulboundItems() throws InterruptedException, IOException {
+        UUID uuid = UUID.randomUUID();
+        File playerFile = new File("data-storage/Slimefun/Players/" + uuid + ".yml");
+
+        OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
+        PlayerProfile profile = TestUtilities.awaitProfile(player);
+
+        profile.addSoulboundItems(Map.of(6, new ItemStack(Material.DIAMOND, 3)));
+
+        // Save the player data
+        LegacyStorage storage = new LegacyStorage();
+        storage.savePlayerData(uuid, profile.getPlayerData());
+
+        // Assert the file exists and contains the soulbound section.
+        // We cannot assert the deserialized ItemStack here because MockBukkit does not support
+        // deserializing ItemStacks (the same reason the backpack tests are disabled).
+        Assertions.assertTrue(playerFile.exists());
+        String contents = Files.readString(playerFile.toPath());
+        Assertions.assertTrue(contents.contains("soulbound:"));
+        Assertions.assertTrue(contents.contains("DIAMOND"));
+
+        // Loading must not throw even though the ItemStack cannot be deserialized in this environment
+        PlayerData assertion = storage.loadPlayerData(uuid);
+        Assertions.assertNotNull(assertion.getSoulboundItems());
+    }
+
     // Utils
     private static void setupResearches() {
         for (int i = 0; i < 10; i++) {

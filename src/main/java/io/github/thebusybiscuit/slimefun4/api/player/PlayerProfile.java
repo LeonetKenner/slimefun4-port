@@ -238,6 +238,48 @@ public class PlayerProfile {
     }
 
     /**
+     * This stores the given Soulbound items so they can be returned to the
+     * {@link Player} later. The key of the {@link Map} is the inventory slot the
+     * item was in when the {@link Player} died.
+     * <p>
+     * These items are persisted, so they are not lost if the server is restarted
+     * while the {@link Player} is still on the death screen.
+     *
+     * @param items
+     *            The Soulbound items to store, indexed by their inventory slot
+     */
+    public void addSoulboundItems(@Nonnull Map<Integer, ItemStack> items) {
+        Validate.notNull(items, "The items cannot be null!");
+
+        if (!items.isEmpty()) {
+            this.data.getSoulboundItems().putAll(items);
+            markDirty();
+        }
+    }
+
+    /**
+     * This returns the Soulbound items which still have to be returned to the
+     * {@link Player}. The key of the {@link Map} is the inventory slot the item
+     * was in.
+     *
+     * @return A {@link Map} of the not yet returned Soulbound items
+     */
+    public @Nonnull Map<Integer, ItemStack> getSoulboundItems() {
+        return this.data.getSoulboundItems();
+    }
+
+    /**
+     * This clears all Soulbound items which still have to be returned to the
+     * {@link Player}. This should be called after they have been returned.
+     */
+    public void clearSoulboundItems() {
+        if (!this.data.getSoulboundItems().isEmpty()) {
+            this.data.getSoulboundItems().clear();
+            markDirty();
+        }
+    }
+
+    /**
      * Call this method if the Player has left.
      * The profile can then be removed from RAM.
      */
@@ -280,7 +322,7 @@ public class PlayerProfile {
         return Optional.empty();
     }
 
-    private int countNonEmptyResearches(@Nonnull Collection<Research> researches) {
+    public static int countNonEmptyResearches(@Nonnull Collection<Research> researches) {
         int count = 0;
         for (Research research : researches) {
             if (research.hasEnabledItems()) {

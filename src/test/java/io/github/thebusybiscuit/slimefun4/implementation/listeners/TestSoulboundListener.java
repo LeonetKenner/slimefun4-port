@@ -1,17 +1,23 @@
 package io.github.thebusybiscuit.slimefun4.implementation.listeners;
 
+import java.util.Map;
+
 import org.bukkit.Material;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import io.github.bakedlibs.dough.items.CustomItemStack;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
+import io.github.thebusybiscuit.slimefun4.api.player.PlayerProfile;
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.items.magical.SoulboundItem;
@@ -95,4 +101,37 @@ class TestSoulboundListener {
         });
     }
 
+    @Test
+    @DisplayName("Test that soulbound items are persisted to the PlayerProfile on death")
+    void testSoulboundItemsPersisted() throws InterruptedException {
+        PlayerMock player = server.addPlayer();
+        PlayerProfile profile = TestUtilities.awaitProfile(player);
+
+        ItemStack item = CustomItemStack.create(Material.DIAMOND_SWORD, "&4Cool Sword");
+        SlimefunUtils.setSoulbound(item, true);
+        player.getInventory().setItem(6, item);
+        player.setHealth(0);
+
+        // Fixes #3774 - The items must be persisted so a server restart does not lose them
+        Assertions.assertEquals(1, profile.getSoulboundItems().size());
+        Assertions.assertTrue(SlimefunUtils.isSoulbound(profile.getSoulboundItems().get(6)));
+    }
+
+    @Test
+    @DisplayName("Test that persisted soulbound items are returned on join (e.g. after a restart)")
+    void testSoulboundItemsReturnedOnJoin() throws InterruptedException {
+        PlayerMock player = server.addPlayer();
+        PlayerProfile profile = TestUtilities.awaitProfile(player);
+
+        ItemStack item = CustomItemStack.create(Material.DIAMOND_SWORD, "&4Cool Sword");
+        SlimefunUtils.setSoulbound(item, true);
+
+        // Simulate the items having been persisted and the server having restarted:
+        // a fresh listener has no in-memory items, only the profile still holds them
+        profile.addSoulboundItems(Map.of(6, item));
+        new SoulboundListener(plugin).onJoin(new PlayerJoinEvent(player, ""));
+
+        Assertions.assertTrue(SlimefunUtils.isItemSimilar(player.getInventory().getItem(6), item, true));
+        Assertions.assertTrue(profile.getSoulboundItems().isEmpty());
+    }
 }

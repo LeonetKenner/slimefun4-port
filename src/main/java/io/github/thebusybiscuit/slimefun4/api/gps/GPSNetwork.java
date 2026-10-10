@@ -144,6 +144,7 @@ public class GPSNetwork {
      */
     public void openTransmitterControlPanel(@Nonnull Player p) {
         ChestMenu menu = new ChestMenu(ChatColor.BLUE + Slimefun.getLocalization().getMessage(p, "machines.GPS_CONTROL_PANEL.title"));
+        menu.setEmptySlotsClickable(false);
 
         for (int slot : border) {
             menu.addItem(slot, ChestMenuUtils.getBackground(), ChestMenuUtils.getEmptyClickHandler());
@@ -227,6 +228,7 @@ public class GPSNetwork {
     public void openWaypointControlPanel(@Nonnull Player p) {
         PlayerProfile.get(p, profile -> {
             ChestMenu menu = new ChestMenu(ChatColor.BLUE + Slimefun.getLocalization().getMessage(p, "machines.GPS_CONTROL_PANEL.title"));
+            menu.setEmptySlotsClickable(false);
 
             for (int slot : border) {
                 menu.addItem(slot, ChestMenuUtils.getBackground(), ChestMenuUtils.getEmptyClickHandler());
