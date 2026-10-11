@@ -1,2 +1,5 @@
 # Automatically normalize line endings (to LF) for all text-based files.
 * text=auto eol=lf
+
+# The in-repo Maven repository (./libs) holds vendored artifacts; keep them byte-for-byte.
+libs/** -text

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>de.diddiz</groupId>
+  <artifactId>logblock</artifactId>
+  <version>1.17.0.0-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <timestamp>20220616.193437</timestamp>
+      <buildNumber>14</buildNumber>
+    </snapshot>
+    <lastUpdated>20220616193437</lastUpdated>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>1.17.0.0-20220616.193437-14</value>
+        <updated>20220616193437</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>1.17.0.0-20220616.193437-14</value>
+        <updated>20220616193437</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+</metadata>
