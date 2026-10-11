@@ -7,7 +7,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Server;
 
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
-import io.papermc.lib.PaperLib;
 
 /**
  * This enum holds all versions of Minecraft that we currently support.
@@ -201,7 +200,7 @@ public enum MinecraftVersion {
      * This tests if the given minecraft version number matches with this
      * {@link MinecraftVersion}.
      * <p>
-     * You can obtain the version number by doing {@link PaperLib#getMinecraftVersion()}.
+     * You can obtain the version number by calling {@link MinecraftVersion#getServerMajorVersion()}.
      * It is equivalent to the "major" version
      * <p>
      * Example: {@literal "1.13"} returns {@literal 13}
@@ -219,9 +218,9 @@ public enum MinecraftVersion {
      * This tests if the given minecraft version matches with this
      * {@link MinecraftVersion}.
      * <p>
-     * You can obtain the version number by doing {@link PaperLib#getMinecraftVersion()}.
+     * You can obtain the version number by calling {@link MinecraftVersion#getServerMajorVersion()}.
      * It is equivalent to the "major" version<br />
-     * You can obtain the patch version by doing {@link PaperLib#getMinecraftPatchVersion()}.
+     * You can obtain the patch version by calling {@link MinecraftVersion#getServerMinorVersion()}.
      * It is equivalent to the "minor" version
      * <p>
      * Example: {@literal "1.13"} returns {@literal 13}<br />
@@ -319,7 +318,7 @@ public enum MinecraftVersion {
      * The following is used to detect the version of the Minecraft Server we are running on.
      * Since Mojang switched to their new year-based versioning scheme ("26.1") in 2026,
      * we can no longer assume that every version starts with "1.".
-     * The old PaperLib parsing relied on that assumption (and a single-digit major version),
+     * The old PaperLib parsing (which we replaced) relied on that assumption (and a single-digit major version),
      * which is why we parse the version string ourselves.
      */
 

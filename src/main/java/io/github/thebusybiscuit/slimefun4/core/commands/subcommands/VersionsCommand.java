@@ -15,7 +15,7 @@ import io.github.thebusybiscuit.slimefun4.core.commands.SlimefunCommand;
 import io.github.thebusybiscuit.slimefun4.core.commands.SubCommand;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.utils.NumberUtils;
-import io.papermc.lib.PaperLib;
+import io.github.bakedlibs.dough.common.ServerCompat;
 
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -56,7 +56,7 @@ class VersionsCommand extends SubCommand {
              * After all these years... Spigot still displays as "CraftBukkit".
              * so we will just fix this inconsistency for them :)
              */
-            String serverSoftware = PaperLib.isSpigot() && !PaperLib.isPaper() ? "Spigot" : Bukkit.getName();
+            String serverSoftware = ServerCompat.isSpigot() && !ServerCompat.isPaper() ? "Spigot" : Bukkit.getName();
             ComponentBuilder builder = new ComponentBuilder();
 
             // @formatter:off

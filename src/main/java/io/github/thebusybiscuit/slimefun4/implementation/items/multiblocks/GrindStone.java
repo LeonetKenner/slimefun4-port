@@ -27,7 +27,7 @@ import io.github.thebusybiscuit.slimefun4.core.services.sounds.SoundEffect;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.SlimefunItems;
 import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils;
-import io.papermc.lib.PaperLib;
+import io.github.bakedlibs.dough.common.ServerCompat;
 
 public class GrindStone extends MultiBlockMachine {
 
@@ -118,7 +118,7 @@ public class GrindStone extends MultiBlockMachine {
     @Override
     public void onInteract(Player p, Block b) {
         Block possibleDispenser = b.getRelative(BlockFace.DOWN);
-        BlockState state = PaperLib.getBlockState(possibleDispenser, false).getState();
+        BlockState state = ServerCompat.getBlockState(possibleDispenser, false).getState();
 
         if (state instanceof Dispenser dispenser) {
             Inventory inv = dispenser.getInventory();

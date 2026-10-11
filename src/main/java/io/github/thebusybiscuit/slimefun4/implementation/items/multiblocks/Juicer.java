@@ -27,7 +27,7 @@ import io.github.thebusybiscuit.slimefun4.core.services.sounds.SoundEffect;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.items.food.Juice;
 import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils;
-import io.papermc.lib.PaperLib;
+import io.github.bakedlibs.dough.common.ServerCompat;
 
 /**
  * The {@link Juicer} is a {@link MultiBlockMachine} which can be used to
@@ -54,7 +54,7 @@ public class Juicer extends MultiBlockMachine {
     @Override
     public void onInteract(Player p, Block b) {
         Block possibleDispenser = b.getRelative(BlockFace.DOWN);
-        BlockState state = PaperLib.getBlockState(possibleDispenser, false).getState();
+        BlockState state = ServerCompat.getBlockState(possibleDispenser, false).getState();
 
         if (state instanceof Dispenser dispenser) {
             Inventory inv = dispenser.getInventory();

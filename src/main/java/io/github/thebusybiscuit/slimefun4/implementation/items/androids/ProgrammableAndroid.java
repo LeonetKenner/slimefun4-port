@@ -49,7 +49,7 @@ import io.github.thebusybiscuit.slimefun4.utils.HeadTexture;
 import io.github.thebusybiscuit.slimefun4.utils.HeadUtils;
 import io.github.thebusybiscuit.slimefun4.utils.NumberUtils;
 import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils;
-import io.papermc.lib.PaperLib;
+import io.github.bakedlibs.dough.common.ServerCompat;
 
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
@@ -761,7 +761,7 @@ public class ProgrammableAndroid extends SlimefunItem implements InventoryBlock,
 
     protected void depositItems(BlockMenu menu, Block facedBlock) {
         if (facedBlock.getType() == Material.DISPENSER && BlockStorage.check(facedBlock, "ANDROID_INTERFACE_ITEMS")) {
-            BlockState state = PaperLib.getBlockState(facedBlock, false).getState();
+            BlockState state = ServerCompat.getBlockState(facedBlock, false).getState();
 
             if (state instanceof Dispenser dispenser) {
                 for (int slot : getOutputSlots()) {
@@ -783,7 +783,7 @@ public class ProgrammableAndroid extends SlimefunItem implements InventoryBlock,
 
     protected void refuel(BlockMenu menu, Block facedBlock) {
         if (facedBlock.getType() == Material.DISPENSER && BlockStorage.check(facedBlock, "ANDROID_INTERFACE_FUEL")) {
-            BlockState state = PaperLib.getBlockState(facedBlock, false).getState();
+            BlockState state = ServerCompat.getBlockState(facedBlock, false).getState();
 
             if (state instanceof Dispenser dispenser) {
                 for (int slot = 0; slot < 9; slot++) {

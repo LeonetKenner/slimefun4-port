@@ -24,7 +24,7 @@ import io.github.thebusybiscuit.slimefun4.core.services.sounds.SoundEffect;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.tasks.AsyncRecipeChoiceTask;
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
-import io.papermc.lib.PaperLib;
+import io.github.bakedlibs.dough.common.ServerCompat;
 
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
 
@@ -58,7 +58,7 @@ public class SlimefunAutoCrafter extends AbstractAutoCrafter {
     public AbstractRecipe getSelectedRecipe(@Nonnull Block b) {
         Preconditions.checkNotNull(b, "The Block cannot be null!");
 
-        BlockState state = PaperLib.getBlockState(b, false).getState();
+        BlockState state = ServerCompat.getBlockState(b, false).getState();
 
         if (state instanceof Skull skull) {
             // Read the stored value from persistent data storage

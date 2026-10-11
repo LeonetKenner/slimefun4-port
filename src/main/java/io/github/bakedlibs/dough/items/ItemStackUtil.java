@@ -1,6 +1,6 @@
 package io.github.bakedlibs.dough.items;
 
-import io.papermc.lib.PaperLib;
+import io.github.bakedlibs.dough.common.ServerCompat;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.inventory.ItemFlag;
@@ -132,7 +132,7 @@ public final class ItemStackUtil {
      * @return {@link ItemStack#editMeta(Consumer)} if on paper, {@link ItemStack#setItemMeta(ItemMeta)} otherwise
      */
     public static boolean editMeta(ItemStack itemStack, Consumer<ItemMeta> consumer) {
-        if (PaperLib.isPaper()) {
+        if (ServerCompat.isPaper()) {
             return itemStack.editMeta(consumer);
         } else {
             ItemMeta itemMeta = itemStack.getItemMeta();

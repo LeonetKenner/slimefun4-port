@@ -14,7 +14,7 @@ import org.bukkit.Bukkit;
 
 import io.github.bakedlibs.dough.versions.MinecraftVersion;
 import io.github.bakedlibs.dough.versions.UnknownServerVersionException;
-import io.papermc.lib.PaperLib;
+import io.github.bakedlibs.dough.common.ServerCompat;
 
 /**
  * This class provides some useful static methods to perform reflection.
@@ -58,7 +58,7 @@ public final class ReflectionUtils {
             // Paper are no longer relocating CB to live under the version in the package name
             // This means org.bukkit.craftbukkit.v1_20_R1.CraftWorld is now org.bukkit.craftbukkit.CraftWorld
             // So we check that it is Paper and does NOT have the _v1 in the package name and just return an empty string
-            if (PaperLib.isPaper() && !packageName.contains(".v1_")) {
+            if (ServerCompat.isPaper() && !packageName.contains(".v1_")) {
                 return (versionSpecificPackage = "");
             }
 

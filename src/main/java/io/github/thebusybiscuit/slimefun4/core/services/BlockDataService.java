@@ -21,7 +21,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
-import io.papermc.lib.PaperLib;
+import io.github.bakedlibs.dough.common.ServerCompat;
 
 /**
  * The {@link BlockDataService} is similar to the {@link CustomItemDataService},
@@ -68,7 +68,7 @@ public class BlockDataService implements Keyed {
         Preconditions.checkNotNull(value, "The value cannot be null!");
 
         /**
-         * Don't use PaperLib here, it seems to be quite buggy in block-placing scenarios
+         * Don't use ServerCompat.getBlockState here, it seems to be quite buggy in block-placing scenarios
          * and it would be too tedious to check for individual build versions to circumvent this.
          */
         BlockState state = b.getState();
@@ -81,7 +81,7 @@ public class BlockDataService implements Keyed {
             } catch (Exception x) {
                 Slimefun.logger().log(Level.SEVERE, "Please check if your Server Software is up to date!");
 
-                String serverSoftware = PaperLib.isSpigot() && !PaperLib.isPaper() ? "Spigot" : Bukkit.getName();
+                String serverSoftware = ServerCompat.isSpigot() && !ServerCompat.isPaper() ? "Spigot" : Bukkit.getName();
                 Slimefun.logger().log(Level.SEVERE, () -> serverSoftware + " | " + Bukkit.getVersion() + " | " + Bukkit.getBukkitVersion());
 
                 Slimefun.logger().log(Level.SEVERE, "An Exception was thrown while trying to set Persistent Data for a Block", x);
@@ -100,7 +100,7 @@ public class BlockDataService implements Keyed {
     public Optional<String> getBlockData(@Nonnull Block b) {
         Preconditions.checkNotNull(b, "The block cannot be null!");
 
-        BlockState state = PaperLib.getBlockState(b, false).getState();
+        BlockState state = ServerCompat.getBlockState(b, false).getState();
         PersistentDataContainer container = getPersistentDataContainer(state);
 
         if (container != null) {

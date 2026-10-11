@@ -23,7 +23,7 @@ import io.github.thebusybiscuit.slimefun4.core.multiblocks.MultiBlockMachine;
 import io.github.thebusybiscuit.slimefun4.core.services.sounds.SoundEffect;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils;
-import io.papermc.lib.PaperLib;
+import io.github.bakedlibs.dough.common.ServerCompat;
 
 /**
  * An abstract super class for the {@link Smeltery} and {@link MakeshiftSmeltery}.
@@ -41,7 +41,7 @@ abstract class AbstractSmeltery extends MultiBlockMachine {
     @Override
     public void onInteract(Player p, Block b) {
         Block possibleDispenser = b.getRelative(BlockFace.DOWN);
-        BlockState state = PaperLib.getBlockState(possibleDispenser, false).getState();
+        BlockState state = ServerCompat.getBlockState(possibleDispenser, false).getState();
 
         if (state instanceof Dispenser dispenser) {
             Inventory inv = dispenser.getInventory();

@@ -16,7 +16,7 @@ import org.bukkit.event.block.BlockFormEvent;
 
 import io.github.thebusybiscuit.slimefun4.api.MinecraftVersion;
 import io.github.thebusybiscuit.slimefun4.implementation.items.androids.MinerAndroid;
-import io.papermc.lib.PaperLib;
+import io.github.bakedlibs.dough.common.ServerCompat;
 
 /**
  * This enum holds various ways of infinite block generators.
@@ -144,7 +144,7 @@ public enum InfiniteBlockGenerator implements Predicate<Block> {
      */
     public @Nonnull BlockFormEvent callEvent(@Nonnull Block block) {
         Preconditions.checkNotNull(block, "The Block cannot be null!");
-        BlockState state = PaperLib.getBlockState(block, false).getState();
+        BlockState state = ServerCompat.getBlockState(block, false).getState();
         BlockFormEvent event = new BlockFormEvent(block, state);
         Bukkit.getPluginManager().callEvent(event);
         return event;

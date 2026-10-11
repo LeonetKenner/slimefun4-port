@@ -129,7 +129,7 @@ import io.github.thebusybiscuit.slimefun4.implementation.tasks.armor.SolarHelmet
 import io.github.thebusybiscuit.slimefun4.integrations.IntegrationsManager;
 import io.github.thebusybiscuit.slimefun4.utils.NumberUtils;
 import io.github.thebusybiscuit.slimefun4.utils.tags.SlimefunTag;
-import io.papermc.lib.PaperLib;
+import io.github.bakedlibs.dough.common.ServerCompat;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.MenuListener;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
@@ -265,10 +265,10 @@ public class Slimefun extends JavaPlugin implements SlimefunAddon {
         Logger logger = getLogger();
 
         // Check if Paper (<3) is installed
-        if (PaperLib.isPaper()) {
+        if (ServerCompat.isPaper()) {
             logger.log(Level.INFO, "Paper was detected! Performance optimizations have been applied.");
         } else {
-            PaperLib.suggestPaper(this);
+            ServerCompat.suggestPaper(this);
         }
 
         // Check if CS-CoreLib is installed (it is no longer needed)
@@ -521,15 +521,15 @@ public class Slimefun extends JavaPlugin implements SlimefunAddon {
     private boolean isVersionUnsupported() {
         try {
             // First check if they still use the unsupported CraftBukkit software.
-            if (!PaperLib.isSpigot() && Bukkit.getName().equals("CraftBukkit")) {
+            if (!ServerCompat.isSpigot() && Bukkit.getName().equals("CraftBukkit")) {
                 StartupWarnings.invalidServerSoftware(getLogger());
                 return true;
             }
 
             // Now check the actual Version of Minecraft
-            // We parse the version string ourselves rather than relying on PaperLib,
-            // as PaperLib cannot handle the new year-based versioning scheme ("26.1")
-            // that Mojang introduced in 2026.
+            // We parse the version string ourselves rather than relying on a third-party
+            // library, as PaperLib (which we used to depend on) cannot handle the new
+            // year-based versioning scheme ("26.1") that Mojang introduced in 2026.
             int version = MinecraftVersion.getServerMajorVersion();
             int patchVersion = MinecraftVersion.getServerMinorVersion();
 

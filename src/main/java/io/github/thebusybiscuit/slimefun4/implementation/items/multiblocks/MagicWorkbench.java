@@ -25,7 +25,7 @@ import io.github.thebusybiscuit.slimefun4.core.services.sounds.SoundEffect;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.items.backpacks.SlimefunBackpack;
 import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils;
-import io.papermc.lib.PaperLib;
+import io.github.bakedlibs.dough.common.ServerCompat;
 
 public class MagicWorkbench extends AbstractCraftingTable {
 
@@ -43,7 +43,7 @@ public class MagicWorkbench extends AbstractCraftingTable {
             return;
         }
 
-        BlockState state = PaperLib.getBlockState(possibleDispener, false).getState();
+        BlockState state = ServerCompat.getBlockState(possibleDispener, false).getState();
 
         if (state instanceof Dispenser dispenser) {
             Inventory inv = dispenser.getInventory();

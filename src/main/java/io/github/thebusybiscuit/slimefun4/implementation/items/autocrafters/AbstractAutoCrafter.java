@@ -42,8 +42,8 @@ import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import io.github.thebusybiscuit.slimefun4.utils.HeadTexture;
 import io.github.thebusybiscuit.slimefun4.utils.compatibility.VersionedParticle;
 import io.github.thebusybiscuit.slimefun4.utils.tags.SlimefunTag;
-import io.papermc.lib.PaperLib;
-import io.papermc.lib.features.blockstatesnapshot.BlockStateSnapshotResult;
+import io.github.bakedlibs.dough.common.ServerCompat;
+import io.github.bakedlibs.dough.common.ServerCompat.BlockStateSnapshot;
 
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
@@ -172,7 +172,7 @@ public abstract class AbstractAutoCrafter extends SlimefunItem implements Energy
 
         // Make sure this is a Chest
         if (isValidInventory(targetBlock)) {
-            BlockState state = PaperLib.getBlockState(targetBlock, false).getState();
+            BlockState state = ServerCompat.getBlockState(targetBlock, false).getState();
 
             if (state instanceof InventoryHolder inventoryHolder) {
                 Inventory inv = inventoryHolder.getInventory();
@@ -240,7 +240,7 @@ public abstract class AbstractAutoCrafter extends SlimefunItem implements Energy
     protected void setSelectedRecipe(@Nonnull Block b, @Nullable AbstractRecipe recipe) {
         Preconditions.checkNotNull(b, "The Block cannot be null!");
 
-        BlockStateSnapshotResult result = PaperLib.getBlockState(b, false);
+        BlockStateSnapshot result = ServerCompat.getBlockState(b, false);
         BlockState state = result.getState();
 
         if (state instanceof Skull skull) {
@@ -326,7 +326,7 @@ public abstract class AbstractAutoCrafter extends SlimefunItem implements Energy
     private void setRecipeEnabled(Player p, Block b, boolean enabled) {
         p.closeInventory();
         SoundEffect.AUTO_CRAFTER_GUI_CLICK_SOUND.playFor(p);
-        BlockState state = PaperLib.getBlockState(b, false).getState();
+        BlockState state = ServerCompat.getBlockState(b, false).getState();
 
         // Make sure the block is still a Skull
         if (state instanceof Skull skull) {
