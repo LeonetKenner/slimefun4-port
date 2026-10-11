@@ -1,5 +1,11 @@
 name: Publish build
 
+# Every push to one of these branches produces a GitHub Release:
+#   - commit message starting with "release" -> a normal release
+#   - anything else                          -> a prerelease (RC)
+#
+# A version for a normal release can be given in the commit message,
+# e.g. "release 4.9.1". Otherwise the version from pom.xml is used.
 on:
   push:
     branches:
@@ -7,14 +13,21 @@ on:
       - stable
       - experimental
 
+permissions:
+  contents: write
+
 jobs:
   publish:
-    name: Upload build
+    name: Build and publish
     runs-on: ubuntu-latest
     if: contains(github.event.head_commit.message, '[ci skip]') == false
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Needed so the release notes can be generated from the history
+          fetch-depth: 0
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4.6.0
@@ -24,35 +37,81 @@ jobs:
           java-package: jdk
           architecture: x64
 
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
       - name: Build with Maven
-        run: mvn clean package
+        run: mvn -B clean package
 
-      - name: Upload Dev build
-        uses: WalshyDev/blob-builds/gh-action@ea9ecd9266c902c6627f884e657560d0fa6b61dd
-        if: github.ref == 'refs/heads/master'
-        with:
-          project: Slimefun4
-          releaseChannel: Dev
-          apiToken: ${{ secrets.BLOB_BUILDS_API_TOKEN }}
-          file: './target/Slimefun v4.9-UNOFFICIAL.jar'
-          releaseNotes: ${{ github.event.head_commit.message }}
+      - name: Work out the release
+        id: release
+        shell: bash
+        env:
+          HEAD_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          set -euo pipefail
 
-      - name: Upload RC build
-        uses: WalshyDev/blob-builds/gh-action@ea9ecd9266c902c6627f884e657560d0fa6b61dd
-        if: github.ref == 'refs/heads/stable'
-        with:
-          project: Slimefun4
-          releaseChannel: 'RC'
-          apiToken: ${{ secrets.BLOB_BUILDS_API_TOKEN }}
-          file: './target/Slimefun v4.9-UNOFFICIAL.jar'
-          releaseNotes: ${{ github.event.head_commit.message }}
+          SUBJECT=$(printf '%s\n' "$HEAD_MESSAGE" | head -n 1)
+          SHORT_SHA=$(git rev-parse --short=7 HEAD)
+          POM_VERSION=$(grep -m1 -oP '(?<=<version>)[^<]+' pom.xml)
 
-      - name: Upload Experimental build
-        uses: WalshyDev/blob-builds/gh-action@ea9ecd9266c902c6627f884e657560d0fa6b61dd
-        if: github.ref == 'refs/heads/experimental'
+          echo "Commit subject: $SUBJECT"
+          echo "Short sha: $SHORT_SHA"
+          echo "pom.xml version: $POM_VERSION"
+
+          if printf '%s' "$SUBJECT" | grep -qiE '^release'; then
+            # "release" or "release 4.9.1" -> a proper release
+            VERSION=$(printf '%s' "$SUBJECT" | sed -nE 's/^release[ :]+([^ ]+).*/\1/Ip')
+            if [ -z "$VERSION" ]; then
+              VERSION="$POM_VERSION"
+            fi
+            case "$VERSION" in
+              v*|V*) TAG="$VERSION" ;;
+              *) TAG="v$VERSION" ;;
+            esac
+            PRERELEASE=false
+            NAME="$TAG"
+          else
+            # everything else -> an RC prerelease, unique per commit
+            TAG="rc-$SHORT_SHA"
+            PRERELEASE=true
+            NAME="RC $SHORT_SHA"
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+          echo "Publishing '$NAME' (tag '$TAG', prerelease=$PRERELEASE)"
+
+      - name: Collect release assets
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          mkdir -p release
+
+          JAR=$(find target -maxdepth 1 -name '*.jar' ! -name '*-sources.jar' ! -name 'original-*' | head -n 1)
+          test -n "$JAR" || { echo "No plugin jar was produced!"; exit 1; }
+          cp "$JAR" "release/Slimefun-$RELEASE_TAG.jar"
+
+          SRC=$(find target -maxdepth 1 -name '*-sources.jar' | head -n 1)
+          if [ -n "$SRC" ]; then
+            cp "$SRC" "release/Slimefun-$RELEASE_TAG-sources.jar"
+          fi
+
+          ls -lh release
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
         with:
-          project: Slimefun4
-          releaseChannel: 'Experimental'
-          apiToken: ${{ secrets.BLOB_BUILDS_API_TOKEN }}
-          file: './target/Slimefun v4.9-UNOFFICIAL.jar'
-          releaseNotes: ${{ github.event.head_commit.message }}
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: ${{ steps.release.outputs.name }}
+          prerelease: ${{ steps.release.outputs.prerelease }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: release/*.jar
