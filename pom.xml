@@ -374,12 +374,6 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.Slimefun.dough</groupId>
-            <artifactId>dough-api</artifactId>
-            <version>cb22e71335</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>io.papermc</groupId>
             <artifactId>paperlib</artifactId>
             <version>1.0.8</version>

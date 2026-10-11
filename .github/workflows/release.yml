@@ -1,0 +1,93 @@
+name: Release
+
+# Builds Slimefun and attaches the resulting jar to a GitHub Release.
+#
+# Ways to trigger a release:
+#   - Push a tag matching `RC-*` (e.g. RC-38) or `v*` (e.g. v4.9.1)
+#   - Run this workflow manually and provide the tag to publish
+#
+# If the release for the given tag does not exist yet, it is created here.
+# If it already exists (for example one created by the "Create new Release
+# Candidate" workflow), the built jar is simply attached to it.
+on:
+  push:
+    tags:
+    - 'RC-*'
+    - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish (e.g. RC-38)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish release
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        # Needed so the release notes can be generated from the full history
+        fetch-depth: 0
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4.6.0
+      with:
+        distribution: 'adopt'
+        java-version: '21'
+        java-package: jdk
+        architecture: x64
+
+    - name: Cache Maven packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Resolve release tag
+      id: release
+      env:
+        INPUT_TAG: ${{ github.event.inputs.tag }}
+      run: |
+        TAG="$INPUT_TAG"
+        if [ -z "$TAG" ]; then
+          TAG="${GITHUB_REF_NAME}"
+        fi
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+        echo "Releasing tag: $TAG"
+
+    - name: Build with Maven
+      run: mvn -B clean package
+
+    - name: Collect release assets
+      env:
+        RELEASE_TAG: ${{ steps.release.outputs.tag }}
+      run: |
+        mkdir -p release
+
+        JAR=$(find target -maxdepth 1 -name '*.jar' ! -name '*-sources.jar' ! -name 'original-*' | head -n 1)
+        test -n "$JAR" || { echo "No plugin jar was produced!"; exit 1; }
+        cp "$JAR" "release/Slimefun-$RELEASE_TAG.jar"
+
+        SRC=$(find target -maxdepth 1 -name '*-sources.jar' | head -n 1)
+        if [ -n "$SRC" ]; then
+          cp "$SRC" "release/Slimefun-$RELEASE_TAG-sources.jar"
+        fi
+
+        ls -lh release
+
+    - name: Publish GitHub release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.release.outputs.tag }}
+        name: ${{ steps.release.outputs.tag }}
+        generate_release_notes: true
+        fail_on_unmatched_files: true
+        files: release/*.jar
