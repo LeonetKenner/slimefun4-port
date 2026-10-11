@@ -17,8 +17,6 @@ import io.github.bakedlibs.dough.common.Validate;
  * means to compare them.
  * 
  * @author TheBusyBiscuit
- * 
- * @see Versioned
  *
  */
 public interface Version extends Comparable<Version> {

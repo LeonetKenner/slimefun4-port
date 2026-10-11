@@ -18,7 +18,7 @@ abstract class AbstractNumericVersion implements Version {
     private final int versionNumber;
 
     /**
-     * This constructs a new {@link SimpleNumericVersion} with the given version number.
+     * This constructs a new numeric {@link Version} with the given version number.
      * The version number cannot be negative.
      * 
      * @param version
